@@ -26,6 +26,12 @@ class StreamNetworkRaster(QgsProcessingAlgorithm):
 
     def tr(self, string):
         return QCoreApplication.translate("Processing", string)
+    
+    def group(self):
+        return 'Stream Object'
+
+    def groupId(self):
+        return 'stream_object'
 
     def name(self):
         return "streamnetworkraster"
