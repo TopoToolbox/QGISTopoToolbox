@@ -5,22 +5,8 @@ from qgis.core import (
     QgsProcessingParameterRasterLayer,
     QgsProcessingParameterRasterDestination,
     QgsProcessingException,
-    QgsRasterLayer,
-    QgsColorRampShader,
-    QgsRandomColorRamp,
-    QgsSingleBandPseudoColorRenderer,
-    QgsPalettedRasterRenderer,
-    QgsProject,
-    QgsRasterBandStats,
-    QgsProcessingContext,
-    QgsRasterShader,
-    QgsColorRampShader,
-    QgsSingleBandPseudoColorRenderer,
-    QgsProject,
-    QgsStyle
 )
 from qgis.PyQt.QtGui import QIcon
-from PyQt5.QtGui import QColor
 
 import topotoolbox as tt
 
@@ -30,18 +16,17 @@ class DrainageBasins(QgsProcessingAlgorithm):
     INPUT_RASTER = "INPUT_RASTER"
     OUTPUT = "OUTPUT"
 
-
     def createInstance(self):
         return DrainageBasins()
 
     def tr(self, string):
         return QCoreApplication.translate("Processing", string)
-    
+
     def group(self):
-        return 'Flow Object'
+        return "Flow Object"
 
     def groupId(self):
-        return 'flow_object'
+        return "flow_object"
 
     def name(self):
         return "drainage_basins"
@@ -50,9 +35,7 @@ class DrainageBasins(QgsProcessingAlgorithm):
         return self.tr("Drainage Basins")
 
     def shortHelpString(self):
-        return self.tr(
-            "Delineate drainage basins from a flow network."
-        )
+        return self.tr("Delineate drainage basins from a flow network.")
 
     def icon(self):
         base_dir = os.path.dirname(os.path.dirname(__file__))
@@ -67,10 +50,10 @@ class DrainageBasins(QgsProcessingAlgorithm):
         )
 
         self.addParameter(
-            QgsProcessingParameterRasterDestination(self.OUTPUT,
-                self.tr("Drainage Basins"))
+            QgsProcessingParameterRasterDestination(
+                self.OUTPUT, self.tr("Drainage Basins")
+            )
         )
-
 
     def processAlgorithm(self, parameters, context, feedback):
         input_raster = self.parameterAsRasterLayer(
@@ -78,9 +61,9 @@ class DrainageBasins(QgsProcessingAlgorithm):
         )
         if input_raster is None:
             raise QgsProcessingException("Invalid input raster layer")
-        
+
         output_path = self.parameterAsOutputLayer(parameters, self.OUTPUT, context)
-        
+
         input_path = input_raster.source()
         dem = tt.read_tif(input_path)
         fd = tt.FlowObject(dem)

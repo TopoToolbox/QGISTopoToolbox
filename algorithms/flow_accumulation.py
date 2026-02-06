@@ -16,18 +16,17 @@ class FlowAccumulation(QgsProcessingAlgorithm):
     INPUT_RASTER = "INPUT_RASTER"
     OUTPUT = "OUTPUT"
 
-
     def createInstance(self):
         return FlowAccumulation()
 
     def tr(self, string):
         return QCoreApplication.translate("Processing", string)
-    
+
     def group(self):
-        return 'Flow Object'
+        return "Flow Object"
 
     def groupId(self):
-        return 'flow_object'
+        return "flow_object"
 
     def name(self):
         return "flow_accumulation"
@@ -55,10 +54,10 @@ class FlowAccumulation(QgsProcessingAlgorithm):
         )
 
         self.addParameter(
-            QgsProcessingParameterRasterDestination(self.OUTPUT,
-                self.tr("Flow Accumulation Raster"))
+            QgsProcessingParameterRasterDestination(
+                self.OUTPUT, self.tr("Flow Accumulation Raster")
+            )
         )
-
 
     def processAlgorithm(self, parameters, context, feedback):
         input_raster = self.parameterAsRasterLayer(
@@ -66,9 +65,9 @@ class FlowAccumulation(QgsProcessingAlgorithm):
         )
         if input_raster is None:
             raise QgsProcessingException("Invalid input raster layer")
-        
+
         output_path = self.parameterAsOutputLayer(parameters, self.OUTPUT, context)
-        
+
         input_path = input_raster.source()
         dem = tt.read_tif(input_path)
         fd = tt.FlowObject(dem)

@@ -21,12 +21,12 @@ class ZScore(QgsProcessingAlgorithm):
 
     def tr(self, string):
         return QCoreApplication.translate("Processing", string)
-    
+
     def group(self):
-        return 'Grid Object'
+        return "Grid Object"
 
     def groupId(self):
-        return 'grid_object'
+        return "grid_object"
 
     def name(self):
         return "zscore"
