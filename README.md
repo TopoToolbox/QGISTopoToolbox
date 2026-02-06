@@ -1,3 +1,5 @@
+[![Tests](https://github.com/topotoolbox/qgistopotoolbox/workflows/CI/badge.svg)](https://github.com/topotoolbox/qgistopotoolbox/actions)
+
 # QGISTopoToolbox
 
 ## How to use
@@ -8,16 +10,20 @@ Once [installed](#installing) and enabled, the TopoToolbox plugin integrates wit
 
 Inside the TopoToolbox group, you will find all available algorithms, including:
 
-- Fillsinks
-- Excesstopography
-- Gradient8
-- Curvature
-- Evans slope
-- prominence
-- z Score
-- extract_streams and stream_network do the same thing but with a different approach. Which is preferred still needs to be decided.
-
-The layers are saved as .tif files. This means that the algorithms represent workflows made up of one or more topotoolbox functions based on the desired output.
+- Grid Object:
+  - Fillsinks
+  - Excesstopography
+  - Gradient8
+  - Curvature
+  - Evans slope
+  - Prominence
+  - z Score
+- Flow Object:
+  - Flow Accumulation
+  - Drainage Basins
+- Stream Object:
+  - Stream Network (Raster)
+  - Stream Network (Vector)
 
 ## Installing
 
@@ -74,4 +80,4 @@ ruff check .
 1. Create a new .py file in the [algorithms](./algorithms/) folder
 2. Create the QgsProcessingAlgorithm like in already existing files
 3. Import the created class in [topotoolboxplugin.py](./topotoolboxplugin.py) and add it to loadAlgorithms function
-4. Zip the again and reinstall the plugin in QGIS
+4. Zip the repository and reinstall the plugin in QGIS
