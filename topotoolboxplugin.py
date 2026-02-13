@@ -15,6 +15,8 @@ from .algorithms.stream_network_raster import StreamNetworkRaster
 from .algorithms.prominence import Prominence
 from .algorithms.zscore import ZScore
 from .algorithms.stream_network_vector import StreamNetworkVector
+from .algorithms.flow_accumulation import FlowAccumulation
+from .algorithms.drainage_basins import DrainageBasins
 
 
 class TopoToolboxProvider(QgsProcessingProvider):
@@ -31,6 +33,8 @@ class TopoToolboxProvider(QgsProcessingProvider):
         self.addAlgorithm(ZScore())
         self.addAlgorithm(StreamNetworkRaster())
         self.addAlgorithm(StreamNetworkVector())
+        self.addAlgorithm(FlowAccumulation())
+        self.addAlgorithm(DrainageBasins())
 
     def id(self):
         return "topotoolbox"

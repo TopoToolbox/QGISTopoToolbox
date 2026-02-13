@@ -9,14 +9,15 @@ from qgis.core import (
     QgsProcessingParameterNumber,
     QgsProcessingParameterEnum,
     QgsProcessingParameterRasterDestination,
+    QgsProcessingParameterVectorDestination,
     QgsProcessingException,
     QgsFeature,
-    QgsVectorLayer,
     QgsGeometry,
-    QgsField,
     QgsPointXY,
-    QgsProject,
     QgsCoordinateReferenceSystem,
+    QgsFields,
+    QgsField,
+    QgsWkbTypes,
 )
 from qgis.PyQt.QtGui import QIcon
 
@@ -29,13 +30,20 @@ class Prominence(QgsProcessingAlgorithm):
     USE_HYBRID = "USE_HYBRID"
     TOLERANCE = "TOLERANCE"
     OUTPUT_TYPE = "OUTPUT_TYPE"
-    OUTPUT = "OUTPUT"
+    RASTER_OUTPUT = "RASTER_OUTPUT"
+    VECTOR_OUTPUT = "VECTOR_OUTPUT"
 
     def createInstance(self):
         return Prominence()
 
     def tr(self, string):
         return QCoreApplication.translate("Processing", string)
+
+    def group(self):
+        return "Grid Object"
+
+    def groupId(self):
+        return "grid_object"
 
     def name(self):
         return "prominence"
@@ -68,7 +76,7 @@ class Prominence(QgsProcessingAlgorithm):
                 self.tr("Tolerance for peak detection in meters"),
                 type=QgsProcessingParameterNumber.Double,
                 minValue=0,
-                defaultValue=100,
+                defaultValue=500,
             )
         )
         self.addParameter(
@@ -88,7 +96,12 @@ class Prominence(QgsProcessingAlgorithm):
         )
         self.addParameter(
             QgsProcessingParameterRasterDestination(
-                self.OUTPUT, self.tr("Output location")
+                self.RASTER_OUTPUT, self.tr("Output Prominence (raster)"), optional=True
+            )
+        )
+        self.addParameter(
+            QgsProcessingParameterVectorDestination(
+                self.VECTOR_OUTPUT, self.tr("Output Prominence (vector)"), optional=True
             )
         )
 
@@ -114,20 +127,23 @@ class Prominence(QgsProcessingAlgorithm):
         if output_type == 0:
             # Case: Raster output
             dem.z = prom_raster
-            output_path = self.parameterAsOutputLayer(parameters, self.OUTPUT, context)
+            output_path = self.parameterAsOutputLayer(
+                parameters, self.RASTER_OUTPUT, context
+            )
             tt.write_tif(dem, output_path)
-            return {self.OUTPUT: output_path}
+            return {self.RASTER_OUTPUT: output_path, self.VECTOR_OUTPUT: None}
 
         else:
             # Case: Vector point layer output
             crs = QgsCoordinateReferenceSystem(dem.georef.to_string())
-            layer = QgsVectorLayer(f"Point?crs={crs.authid()}", "Prominence", "memory")
-            provider = layer.dataProvider()
 
-            provider.addAttributes([QgsField("prom", QVariant.Double)])
-            layer.updateFields()
+            fields = QgsFields()
+            fields.append(QgsField("prom", QVariant.Double))
 
-            features = []
+            sink, output_path = self.parameterAsSink(
+                parameters, self.VECTOR_OUTPUT, context, fields, QgsWkbTypes.Point, crs
+            )
+
             rows, cols = np.where(~np.isnan(prom_raster))
 
             for r, c in zip(rows, cols):
@@ -135,12 +151,6 @@ class Prominence(QgsProcessingAlgorithm):
                 feature = QgsFeature()
                 feature.setGeometry(QgsGeometry.fromPointXY(QgsPointXY(x, y)))
                 feature.setAttributes([float(prom_raster[r, c])])
-                features.append(feature)
+                sink.addFeature(feature)
 
-            if features:
-                provider.addFeatures(features)
-                layer.updateExtents()
-
-            QgsProject.instance().addMapLayer(layer)
-
-            return {self.OUTPUT: layer.id()}
+            return {self.VECTOR_OUTPUT: output_path}

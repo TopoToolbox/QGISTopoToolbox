@@ -8,6 +8,11 @@ from qgis.core import (
     QgsProcessingParameterEnum,
     QgsProcessingParameterRasterDestination,
     QgsProcessingException,
+    QgsRasterShader,
+    QgsColorRampShader,
+    QgsSingleBandPseudoColorRenderer,
+    QgsProcessingUtils,
+    QgsStyle,
 )
 from qgis.PyQt.QtGui import QIcon
 
@@ -25,6 +30,12 @@ class Gradient8(QgsProcessingAlgorithm):
 
     def tr(self, string):
         return QCoreApplication.translate("Processing", string)
+
+    def group(self):
+        return "Grid Object"
+
+    def groupId(self):
+        return "grid_object"
 
     def name(self):
         return "gradient8"
@@ -64,7 +75,9 @@ class Gradient8(QgsProcessingAlgorithm):
             )
         )
         self.addParameter(
-            QgsProcessingParameterRasterDestination(self.OUTPUT, self.tr(""))
+            QgsProcessingParameterRasterDestination(
+                self.OUTPUT, self.tr("gradient8 output raster")
+            )
         )
 
     def processAlgorithm(self, parameters, context, feedback):
@@ -97,4 +110,25 @@ class Gradient8(QgsProcessingAlgorithm):
 
         output_path = self.parameterAsOutputLayer(parameters, self.OUTPUT, context)
         tt.write_tif(result_dem, output_path)
+
+        # Apply color ramp to output raster
+        output_layer = QgsProcessingUtils.mapLayerFromString(output_path, context)
+        stats = output_layer.dataProvider().bandStatistics(1)
+
+        color_ramp = QgsColorRampShader()
+        color_ramp.setColorRampType(QgsColorRampShader.Interpolated)
+        color_ramp.setSourceColorRamp(QgsStyle().defaultStyle().colorRamp("Viridis"))
+        color_ramp.setMinimumValue(stats.minimumValue)
+        color_ramp.setMaximumValue(stats.maximumValue)
+
+        shader = QgsRasterShader()
+        shader.setRasterShaderFunction(color_ramp)
+
+        renderer = QgsSingleBandPseudoColorRenderer(
+            output_layer.dataProvider(), 1, shader
+        )
+
+        output_layer.setRenderer(renderer)
+        output_layer.triggerRepaint()
+
         return {self.OUTPUT: output_path}
